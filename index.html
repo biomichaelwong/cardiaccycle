@@ -1,242 +1,413 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MichaelWong 電腦模擬測驗</title>
+    <title>HKDSE 生物科：血液循環導航圖 (Parallel Circuit Edition)</title>
     <style>
-        :root {
-            --primary: #00ff88; 
-            --bg: #0f172a;      
-            --card-bg: #1e293b;
-            --text: #f8fafc;
+        /* --- 1. Standard CSS for the Back Button --- */
+        .back-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1000;
+            background-color: #e5e7eb; /* Light Gray */
+            color: #1f2937; /* Dark Gray Text */
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.2s ease;
         }
 
+        .back-btn:hover {
+            background-color: #d1d5db;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .back-btn:active {
+            transform: translateY(0);
+        }
+
+        /* --- 2. Existing Page Styles --- */
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
             margin: 0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
         }
-
-        /* Top Right Language Toggle */
-        .lang-switch {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--card-bg);
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            padding: 12px 24px;
-            border-radius: 50px;
-            cursor: pointer;
+        h1 {
+            color: #b51a1a; text-align: center; border-bottom: 2px solid #b51a1a;
+            padding-bottom: 10px; margin-bottom: 20px; width: 100%; max-width: 1200px;
+            margin-top: 40px; /* Space for the fixed button */
+        }
+        .main-container {
+            display: flex; flex-wrap: wrap; gap: 20px; max-width: 1500px;
+            width: 100%; justify-content: center; align-items: stretch;
+        }
+        .control-panel, .info-panel {
+            background: white; padding: 25px; border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex: 1;
+            min-width: 300px; max-width: 380px; display: flex; flex-direction: column;
+        }
+        .map-panel {
+            background: white; padding: 20px; border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1); flex: 1.5;
+            min-width: 500px; display: flex; justify-content: center;
+            align-items: center; position: relative;
+        }
+        
+        .section-title { font-size: 1.2em; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; margin-top: 0; margin-bottom: 15px; font-weight: bold;}
+        
+        .input-group { display: flex; flex-direction: column; margin-bottom: 15px; }
+        label { font-weight: bold; margin-bottom: 5px; color: #2c3e50; }
+        select {
+            padding: 12px; border: 2px solid #e0e6ed; border-radius: 8px;
+            font-size: 16px; outline: none; transition: border-color 0.3s;
+        }
+        select:focus { border-color: #3498db; }
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        button {
+            flex: 1; color: white; border: none; padding: 15px; font-size: 18px;
+            border-radius: 8px; cursor: pointer; transition: background 0.3s, transform 0.1s;
             font-weight: bold;
-            font-size: 1rem;
-            z-index: 1000;
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
-            transition: 0.3s;
         }
-
-        .lang-switch:hover {
-            background: var(--primary);
-            color: var(--bg);
+        #nav-btn { background-color: #e74c3c; }
+        #nav-btn:hover { background-color: #c0392b; }
+        #animation-btn { background-color: #f1c40f; }
+        #animation-btn:hover { background-color: #f39c12; }
+        button:active { transform: scale(0.98); }
+        
+        #route-output, #content-changes-output {
+            margin-top: 20px; padding: 15px; background-color: #f8f9fa;
+            border-radius: 8px; border: 1px solid #e0e6ed; flex-grow: 1; overflow-y: auto; max-height: 500px;
         }
-
-        header { padding: 50px 20px; text-align: center; }
-        h1 { font-size: 2.8rem; text-transform: uppercase; border-bottom: 4px solid var(--primary); padding-bottom: 10px; }
-
-        .container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            width: 90%;
-            max-width: 1200px;
-            padding-bottom: 50px;
+        
+        .path-step {
+            display: block; background: white; padding: 10px 15px;
+            border-radius: 8px; margin: 8px 0; border-left: 5px solid #bdc3c7;
+            font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-
-        .sim-card {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 15px;
-            text-decoration: none;
-            color: var(--text);
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: 0.3s;
+        .vessel-text { color: #7f8c8d; font-size: 0.9em; margin-left: 20px; }
+        
+        .change-card {
+            background: white; padding: 12px; border-radius: 8px; margin-bottom: 12px;
+            border-left: 5px solid #3498db; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            font-size: 0.95em; line-height: 1.5;
         }
-
-        .sim-card:hover {
-            transform: translateY(-8px);
-            border-color: var(--primary);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        .change-card strong { color: #2c3e50; display: block; margin-bottom: 5px; font-size: 1.05em; }
+        .stat-up { color: #e74c3c; font-weight: bold; }
+        .stat-down { color: #3498db; font-weight: bold; }
+        .stat-neutral { color: #f39c12; font-weight: bold; }
+        
+        #svg-map {
+            width: 100%; height: auto; max-height: 800px;
+            background-color: #ffffff; border-radius: 8px;
         }
+        .organ-node { fill: rgba(255,255,255,0.9); stroke: #555; stroke-width: 1.5; rx: 6; }
+        .heart-node { fill: #ffebee; stroke: #e74c3c; stroke-width: 2; rx: 6; }
+        .vessel-path { fill: none; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+        .vessel-hitbox { cursor: pointer; pointer-events: stroke; transition: stroke 0.2s; }
+        .vessel-hitbox:hover { stroke: rgba(241, 196, 15, 0.4); } 
+        
+        .oxygenated { stroke: #ff7675; }
+        .deoxygenated { stroke: #74b9ff; }
+        .portal { stroke: #a29bfe; }
+        
+        text { font-family: sans-serif; font-size: 16px; font-weight: bold; fill: #2d3436; pointer-events: none; }
+        .vessel-label { font-size: 14px; font-weight: bold; fill: #e74c3c; }
+        .vessel-label.vein { fill: #3498db; }
 
-        .badge { color: var(--primary); font-size: 0.8rem; font-weight: bold; display: block; margin-bottom: 10px; }
-        h3 { margin: 10px 0; font-size: 1.5rem; }
-        p { opacity: 0.7; font-size: 0.9rem; line-height: 1.4; }
+        #tooltip {
+            position: absolute; background: rgba(44, 62, 80, 0.95); color: white;
+            padding: 8px 14px; border-radius: 6px; font-size: 15px; font-weight: bold;
+            pointer-events: none; display: none; z-index: 1000; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transform: translate(-50%, -100%); margin-top: -10px; white-space: nowrap;
+        }
+        #tooltip::after {
+            content: ''; position: absolute; top: 100%; left: 50%; margin-left: -6px;
+            border-width: 6px; border-style: solid;
+            border-color: rgba(44, 62, 80, 0.95) transparent transparent transparent;
+        }
     </style>
 </head>
 <body>
 
-    <button class="lang-switch" onclick="toggleLanguage()" id="langBtn">中文版</button>
+    <a href="index.html" class="back-btn">
+        ⬅ 返回實驗室
+    </a>
 
-    <header>
-        <h1 id="mainTitle">Biology Lab Pavilion</h1>
-        <p id="subTitle">Select a simulation to begin</p>
-    </header>
+    <h1>HKDSE 生物科：血液循環導航圖</h1>
+    
+    <div class="main-container">
+        <div class="control-panel">
+            <h2 class="section-title">🗺️ 導航設定</h2>
+            <div class="input-group">
+                <label for="startNode">📍 起點 (Start):</label>
+                <select id="startNode"></select>
+            </div>
+            <div class="input-group">
+                <label for="endNode">🏁 終點 (End):</label>
+                <select id="endNode"></select>
+            </div>
+            <div class="btn-group">
+                <button id="nav-btn" onclick="startNavigation()">開始導航</button>
+                <button id="animation-btn" onclick="toggleAnimation()" style="display:none;">暫停</button>
+            </div>
+            <div id="route-output">
+                <div style="color: #7f8c8d; text-align: center; margin-top: 20px;">路線將顯示在此...</div>
+            </div>
+        </div>
 
-    <div class="container" id="grid">
-        <a href="sandbox1_en.html" class="sim-card" id="card1">
-            <span class="badge" data-key="cat1">sandbox</span>
-            <h3 data-key="title1">sandbox1</h3>
-            <p data-key="desc1">sandbox1 testing site.</p>
-        </a>
+        <div class="map-panel" id="map-container">
+            <div id="tooltip">血管名稱</div>
+            <svg id="svg-map" viewBox="0 0 500 800"></svg>
+        </div>
 
-        <a href="sandbox2_en.html" class="sim-card" id="card2">
-            <span class="badge" data-key="cat2">sandbox</span>
-            <h3 data-key="title2">sandbox2</h3>
-            <p data-key="desc2">sandbox2 testing site.</p>
-        </a>
-
-        <a href="sandbox3_en.html" class="sim-card" id="card3">
-            <span class="badge" data-key="cat3">sandbox</span>
-            <h3 data-key="title3">sandbox3</h3>
-            <p data-key="desc3">sandbox3 testing site.</p>
-        </a>
-
-        <a href="sandbox4_en.html" class="sim-card" id="card4">
-            <span class="badge" data-key="cat4">sandbox</span>
-            <h3 data-key="title4">sandbox4</h3>
-            <p data-key="desc4">sandbox4 testing site.</p>
-        </a>
-
-        <a href="sandbox5_en.html" class="sim-card" id="card5">
-            <span class="badge" data-key="cat5">sandbox</span>
-            <h3 data-key="title5">sandbox5</h3>
-            <p data-key="desc5">sandbox5 testing site.</p>
-        </a>
-
-        <a href="sandbox6_en.html" class="sim-card" id="card6">
-            <span class="badge" data-key="cat6">sandbox</span>
-            <h3 data-key="title6">sandbox6</h3>
-            <p data-key="desc6">sandbox6 testing site.</p>
-        </a>
-
-        <a href="sandbox7_en.html" class="sim-card" id="card7">
-            <span class="badge" data-key="cat7">sandbox</span>
-            <h3 data-key="title7">sandbox7</h3>
-            <p data-key="desc7">sandbox7 testing site.</p>
-        </a>
-
-        <a href="sandbox8_en.html" class="sim-card" id="card8">
-            <span class="badge" data-key="cat8">sandbox</span>
-            <h3 data-key="title8">sandbox8</h3>
-            <p data-key="desc8">sandbox8 testing site.</p>
-        </a>
-
-        <a href="sandbox9_en.html" class="sim-card" id="card9">
-            <span class="badge" data-key="cat9">sandbox</span>
-            <h3 data-key="title9">sandbox9</h3>
-            <p data-key="desc9">sandbox9 testing site.</p>
-        </a>
-
-        <a href="sandbox10_en.html" class="sim-card" id="card10">
-            <span class="badge" data-key="cat10">sandbox</span>
-            <h3 data-key="title10">sandbox10</h3>
-            <p data-key="desc10">sandbox10 testing site.</p>
-        </a>
-
-        <a href="sandbox11_en.html" class="sim-card" id="card11">
-            <span class="badge" data-key="cat11">sandbox</span>
-            <h3 data-key="title11">sandbox11</h3>
-            <p data-key="desc11">sandbox11 testing site.</p>
-        </a>
-
-        <a href="sandbox12_en.html" class="sim-card" id="card12">
-            <span class="badge" data-key="cat12">sandbox</span>
-            <h3 data-key="title12">sandbox12</h3>
-            <p data-key="desc12">sandbox12 testing site.</p>
-        </a>
+        <div class="info-panel">
+            <h2 class="section-title">🧪 血液成分變化</h2>
+            <div id="content-changes-output">
+                <div style="color: #7f8c8d; text-align: center; margin-top: 20px;">選擇路線後，將顯示血液經過各器官時的成分變化...</div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const translations = {
-            en: {
-                btn: "中文版",
-                mainTitle: "Biology Lab Pavilion",
-                subTitle: "Select a simulation to begin",
-                cat1: "RESPIRATORY", title1: "Breathing Mechanics", desc1: "Visualizing lung pressure and diaphragm movement.",
-                cat2: "CIRCULATORY", title2: "Heart Rate", desc2: "Simulating pulse and blood flow dynamics.",
-                
-                // 10 NEW ENGLISH TRANSLATIONS
-                cat3: "SANDBOX", title3: "Sandbox 3", desc3: "Sandbox 3 testing site.",
-                cat4: "SANDBOX", title4: "Sandbox 4", desc4: "Sandbox 4 testing site.",
-                cat5: "SANDBOX", title5: "Sandbox 5", desc5: "Sandbox 5 testing site.",
-                cat6: "SANDBOX", title6: "Sandbox 6", desc6: "Sandbox 6 testing site.",
-                cat7: "SANDBOX", title7: "Sandbox 7", desc7: "Sandbox 7 testing site.",
-                cat8: "SANDBOX", title8: "Sandbox 8", desc8: "Sandbox 8 testing site.",
-                cat9: "SANDBOX", title9: "Sandbox 9", desc9: "Sandbox 9 testing site.",
-                cat10: "SANDBOX", title10: "Sandbox 10", desc10: "Sandbox 10 testing site.",
-                cat11: "SANDBOX", title11: "Sandbox 11", desc11: "Sandbox 11 testing site.",
-                cat12: "SANDBOX", title12: "Sandbox 12", desc12: "Sandbox 12 testing site.",
-                
-                suffix: "_en.html" 
-            },
-            cn: {
-                btn: "English Version",
-                mainTitle: "生物互動實驗室",
-                subTitle: "請選擇一個模擬程式開始學習",
-                cat1: "呼吸系統", title1: "呼吸力學", desc1: "可視化肺部壓力和膈肌運動。",
-                cat2: "循環系統", title2: "心率模擬", desc2: "模擬脈搏和血流動力學。",
-                
-                // 10 NEW CHINESE TRANSLATIONS
-                cat3: "沙盒", title3: "沙盒 3", desc3: "沙盒 3 測試網站。",
-                cat4: "沙盒", title4: "沙盒 4", desc4: "沙盒 4 測試網站。",
-                cat5: "沙盒", title5: "沙盒 5", desc5: "沙盒 5 測試網站。",
-                cat6: "沙盒", title6: "沙盒 6", desc6: "沙盒 6 測試網站。",
-                cat7: "沙盒", title7: "沙盒 7", desc7: "沙盒 7 測試網站。",
-                cat8: "沙盒", title8: "沙盒 8", desc8: "沙盒 8 測試網站。",
-                cat9: "沙盒", title9: "沙盒 9", desc9: "沙盒 9 測試網站。",
-                cat10: "沙盒", title10: "沙盒 10", desc10: "沙盒 10 測試網站。",
-                cat11: "沙盒", title11: "沙盒 11", desc11: "沙盒 11 測試網站。",
-                cat12: "沙盒", title12: "沙盒 12", desc12: "沙盒 12 測試網站。",
-                
-                suffix: "_cn.html" 
-            }
+        const nodes = {
+            "頭部與手臂": {x: 250, y: 60, w: 120, h: 40, type: 'organ', bg: '<path d="M-20,15 C-20,0 20,0 20,15 Z M0,5 C-15,-15 15,-15 0,5 Z" fill="#bdc3c7" opacity="0.5" transform="scale(2.0)" />'},
+            "肺": {x: 250, y: 150, w: 120, h: 40, type: 'organ', bg: '<path d="M-25,15 C-40,-5 -15,-25 -5,-10 C-5,-5 -15,10 -25,15 Z M25,15 C40,-5 15,-25 5,-10 C5,-5 15,10 25,15 Z" fill="#ff7675" opacity="0.4" transform="scale(2.0)" />'},
+            "右心房": {x: 180, y: 250, w: 80, h: 40, type: 'heart'},
+            "左心房": {x: 320, y: 250, w: 80, h: 40, type: 'heart'},
+            "右心室": {x: 180, y: 310, w: 80, h: 40, type: 'heart'},
+            "左心室": {x: 320, y: 310, w: 80, h: 40, type: 'heart'},
+            "肝": {x: 250, y: 430, w: 120, h: 40, type: 'organ', bg: '<path d="M-35,-15 C10,-25 40,-5 35,5 C10,20 -30,15 -35,-15 Z" fill="#d35400" opacity="0.4" transform="scale(1.8)" />'},
+            "小腸": {x: 250, y: 520, w: 120, h: 40, type: 'organ', bg: '<rect x="-35" y="-15" width="70" height="30" rx="10" fill="#f39c12" opacity="0.3" transform="scale(1.7)"/><path d="M-30,0 Q-15,-15 0,0 T30,0" fill="none" stroke="#e67e22" stroke-width="4" opacity="0.5" transform="scale(1.7)"/>'},
+            "腎": {x: 250, y: 610, w: 120, h: 40, type: 'organ', bg: '<path d="M-20,-10 C-30,-20 -30,20 -20,10 C-10,15 -10,-15 -20,-10 Z M20,-10 C30,-20 30,20 20,10 C10,15 10,-15 20,-10 Z" fill="#8e44ad" opacity="0.4" transform="scale(1.8)" />'},
+            "身體部位": {x: 250, y: 700, w: 120, h: 40, type: 'organ', bg: '<rect x="-20" y="-15" width="12" height="40" rx="5" fill="#bdc3c7" opacity="0.5" transform="scale(1.7)"/><rect x="8" y="-15" width="12" height="40" rx="5" fill="#bdc3c7" opacity="0.5" transform="scale(1.7)"/>'},
+            "肺動脈樞紐": { type: 'hub' }, "A_頭": { type: 'hub' }, "A_心": { type: 'hub' }, "A_肝": { type: 'hub' }, "A_腸": { type: 'hub' }, "A_腎": { type: 'hub' }, "A_身": { type: 'hub' },
+            "V_頭": { type: 'hub' }, "V_心": { type: 'hub' }, "V_肝": { type: 'hub' }, "V_腎": { type: 'hub' }, "V_身": { type: 'hub' }
         };
 
-        let currentLang = 'en';
+        const organChanges = {
+            "肺": `• 氧氣 (O₂): <span class="stat-up">大幅增加 ⬆️</span><br>• 二氧化碳 (CO₂): <span class="stat-down">大幅減少 ⬇️</span>`,
+            "小腸": `• 氧氣 (O₂): <span class="stat-down">減少 ⬇️</span><br>• 二氧化碳 (CO₂): <span class="stat-up">增加 ⬆️</span><br>• 營養素: <span class="stat-up">大幅增加 ⬆️</span>`,
+            "肝": `• 氧氣 (O₂): <span class="stat-down">減少 ⬇️</span><br>• 尿素 (Urea): <span class="stat-up">增加 ⬆️</span><br>• 葡萄糖: <span class="stat-neutral">趨於穩定</span>`,
+            "腎": `• 氧氣 (O₂): <span class="stat-down">減少 ⬇️</span><br>• 尿素 (Urea): <span class="stat-down">大幅減少 ⬇️</span>`,
+            "頭部與手臂": `• 氧氣 (O₂): <span class="stat-down">減少 ⬇️</span><br>• 二氧化碳 (CO₂): <span class="stat-up">增加 ⬆️</span>`,
+            "身體部位": `• 氧氣 (O₂): <span class="stat-down">減少 ⬇️</span><br>• 二氧化碳 (CO₂): <span class="stat-up">增加 ⬆️</span>`
+        };
 
-        function toggleLanguage() {
-            currentLang = (currentLang === 'en') ? 'cn' : 'en';
-            const data = translations[currentLang];
+        const edges = [
+            { from: "右心室", to: "肺動脈樞紐", vessel: "肺動脈", path: [[180, 310], [120, 310]], type: 'deoxygenated' },
+            { from: "肺動脈樞紐", to: "肺", vessel: "肺動脈", path: [[120, 310], [120, 150], [250, 150]], type: 'deoxygenated' },
+            { from: "肺", to: "左心房", vessel: "肺靜脈", path: [[250, 150], [350, 150], [350, 250], [320, 250]], type: 'oxygenated' },
+            { from: "左心房", to: "左心室", vessel: "", path: [[320, 250], [320, 310]], type: 'oxygenated' },
+            { from: "右心房", to: "右心室", vessel: "", path: [[180, 250], [180, 310]], type: 'deoxygenated' },
+            { from: "左心室", to: "A_心", vessel: "大動脈 (Aorta)", path: [[320, 310], [380, 310]], type: 'oxygenated' },
+            { from: "A_心", to: "A_頭", vessel: "大動脈 (Aorta)", path: [[380, 310], [380, 60]], type: 'oxygenated' },
+            { from: "A_心", to: "A_肝", vessel: "大動脈 (Aorta)", path: [[380, 310], [380, 430]], type: 'oxygenated' },
+            { from: "A_肝", to: "A_腸", vessel: "大動脈 (Aorta)", path: [[380, 430], [380, 520]], type: 'oxygenated' },
+            { from: "A_腸", to: "A_腎", vessel: "大動脈 (Aorta)", path: [[380, 520], [380, 610]], type: 'oxygenated' },
+            { from: "A_腎", to: "A_身", vessel: "大動脈 (Aorta)", path: [[380, 610], [380, 700]], type: 'oxygenated' },
+            { from: "A_頭", to: "頭部與手臂", vessel: "頸動脈 / 鎖骨下動脈", path: [[380, 60], [250, 60]], type: 'oxygenated' },
+            { from: "A_肝", to: "肝", vessel: "肝動脈", path: [[380, 430], [250, 430]], type: 'oxygenated' },
+            { from: "A_腸", to: "小腸", vessel: "小腸動脈", path: [[380, 520], [250, 520]], type: 'oxygenated' },
+            { from: "A_腎", to: "腎", vessel: "腎動脈", path: [[380, 610], [250, 610]], type: 'oxygenated' },
+            { from: "A_身", to: "身體部位", vessel: "體動脈分支", path: [[380, 700], [250, 700]], type: 'oxygenated' },
+            { from: "小腸", to: "肝", vessel: "肝門靜脈", path: [[250, 520], [180, 520], [180, 440], [250, 440], [250, 430]], type: 'portal' },
+            { from: "頭部與手臂", to: "V_頭", vessel: "頸靜脈 / 鎖骨下靜脈", path: [[250, 60], [50, 60]], type: 'deoxygenated' },
+            { from: "肝", to: "V_肝", vessel: "肝靜脈", path: [[250, 430], [50, 430]], type: 'deoxygenated' },
+            { from: "腎", to: "V_腎", vessel: "腎靜脈", path: [[250, 610], [50, 610]], type: 'deoxygenated' },
+            { from: "身體部位", to: "V_身", vessel: "體靜脈分支", path: [[250, 700], [50, 700]], type: 'deoxygenated' },
+            { from: "V_頭", to: "V_心", vessel: "前腔靜脈 (Anterior Vena Cava)", path: [[50, 60], [50, 250]], type: 'deoxygenated' },
+            { from: "V_身", to: "V_腎", vessel: "後腔靜脈 (Posterior Vena Cava)", path: [[50, 700], [50, 610]], type: 'deoxygenated' },
+            { from: "V_腎", to: "V_肝", vessel: "後腔靜脈 (Posterior Vena Cava)", path: [[50, 610], [50, 430]], type: 'deoxygenated' },
+            { from: "V_肝", to: "V_心", vessel: "後腔靜脈 (Posterior Vena Cava)", path: [[50, 430], [50, 250]], type: 'deoxygenated' },
+            { from: "V_心", to: "右心房", vessel: "腔靜脈 (Vena Cava)", path: [[50, 250], [180, 250]], type: 'deoxygenated' }
+        ];
 
-            // 1. Update Header Text
-            document.getElementById('langBtn').innerText = data.btn;
-            document.getElementById('mainTitle').innerText = data.mainTitle;
-            document.getElementById('subTitle').innerText = data.subTitle;
+        let currentAnimation = null;
+        let isPaused = false;
 
-            // 2. Update Card Text
-            document.querySelectorAll('[data-key]').forEach(el => {
-                const key = el.getAttribute('data-key');
-                el.innerText = data[key];
+        window.onload = function() {
+            const startSelect = document.getElementById('startNode');
+            const endSelect = document.getElementById('endNode');
+            Object.keys(nodes).forEach(key => {
+                if (nodes[key].type !== 'hub') {
+                    startSelect.add(new Option(key, key)); endSelect.add(new Option(key, key));
+                }
             });
+            startSelect.value = "左心室"; endSelect.value = "腎";
+            drawMap();
+        };
 
-            // 3. Update Links
-            updateLinks(currentLang);
+        function drawMap() {
+            const svg = document.getElementById('svg-map');
+            let linesHTML = '', hitboxHTML = '', bgHTML = '', boxHTML = '';
+            edges.forEach(edge => {
+                const d = edge.path.map((p, i) => (i === 0 ? `M ${p[0]} ${p[1]}` : `L ${p[0]} ${p[1]}`)).join(' ');
+                linesHTML += `<path d="${d}" class="vessel-path ${edge.type}" />`;
+                if (edge.vessel) {
+                    hitboxHTML += `<path d="${d}" class="vessel-hitbox" stroke="transparent" stroke-width="18" fill="none" 
+                        onmousemove="showTooltip(event, '${edge.vessel}')" onmouseout="hideTooltip()"/>`;
+                }
+            });
+            bgHTML += `<path d="M250,350 C160,280 190,210 250,250 C310,210 340,280 250,350 Z" fill="#e74c3c" opacity="0.15" />`;
+            for (let name in nodes) {
+                if (nodes[name].type !== 'hub') {
+                    const c = nodes[name];
+                    if (c.bg) bgHTML += `<g transform="translate(${c.x}, ${c.y})">${c.bg}</g>`;
+                    const nodeClass = c.type === 'heart' ? 'heart-node' : 'organ-node';
+                    boxHTML += `<rect x="${c.x - c.w/2}" y="${c.y - c.h/2}" width="${c.w}" height="${c.h}" class="${nodeClass}" />
+                                <text x="${c.x}" y="${c.y + 5}" text-anchor="middle">${name}</text>`;
+                }
+            }
+            const vesselLabelsHTML = `
+                <text x="395" y="180" class="vessel-label" transform="rotate(90, 395, 180)">大動脈 (Aorta)</text>
+                <text x="35" y="580" class="vessel-label vein" transform="rotate(-90, 35, 580)">腔靜脈 (Vena Cava)</text>
+            `;
+            const rbcMarkerHTML = `<circle id="rbc-marker" cx="0" cy="0" r="7" fill="#e74c3c" stroke="white" stroke-width="2" style="display:none; filter: drop-shadow(0 0 6px rgba(231,76,60,0.9)); z-index: 100;"></circle>`;
+            svg.innerHTML = linesHTML + hitboxHTML + bgHTML + boxHTML + vesselLabelsHTML + rbcMarkerHTML;
         }
 
-        function updateLinks(lang) {
-            const cards = document.querySelectorAll('.sim-card');
-            cards.forEach(card => {
-                let currentHref = card.getAttribute('href');
-                let baseName = currentHref.split('_')[0]; 
-                card.setAttribute('href', baseName + translations[lang].suffix);
-            });
+        function showTooltip(e, text) {
+            const tooltip = document.getElementById('tooltip');
+            const rect = document.getElementById('map-container').getBoundingClientRect();
+            tooltip.innerText = text; tooltip.style.display = 'block';
+            tooltip.style.left = (e.clientX - rect.left) + 'px';
+            tooltip.style.top = (e.clientY - rect.top - 10) + 'px';
+        }
+        function hideTooltip() { document.getElementById('tooltip').style.display = 'none'; }
+
+        function findEdgePath(start, end) {
+            let queue = [[ { node: start, edge: null } ]];
+            let visited = new Set();
+            while (queue.length > 0) {
+                let path = queue.shift();
+                let currentNode = path[path.length - 1].node;
+                if (currentNode === end && path.length > 1) return path;
+                if (!visited.has(currentNode)) {
+                    if (path.length > 1 || start !== end) visited.add(currentNode);
+                    let nextEdges = edges.filter(e => e.from === currentNode);
+                    for (let edge of nextEdges) queue.push([...path, { node: edge.to, edge: edge }]);
+                }
+            }
+            return null;
+        }
+
+        function calcDistance(p1, p2) { return Math.hypot(p2[0] - p1[0], p2[1] - p1[1]); }
+
+        function startNavigation() {
+            const start = document.getElementById('startNode').value;
+            const end = document.getElementById('endNode').value;
+            const routeOutput = document.getElementById('route-output');
+            const changesOutput = document.getElementById('content-changes-output');
+            const marker = document.getElementById('rbc-marker');
+            const animBtn = document.getElementById('animation-btn');
+
+            let fullPath = null;
+            if (start === end) {
+                let midpoint = (start === "肺" || start === "右心房" || start === "右心室") ? "身體部位" : "肺";
+                let p1 = findEdgePath(start, midpoint), p2 = findEdgePath(midpoint, end);
+                if (p1 && p2) fullPath = p1.concat(p2.slice(1));
+            } else {
+                fullPath = findEdgePath(start, end);
+            }
+
+            if (currentAnimation) currentAnimation.cancel();
+            isPaused = false; animBtn.style.display = 'none'; animBtn.innerText = "暫停";
+
+            if (fullPath) {
+                let htmlFormat = `<div class="path-step" style="border-left-color: #f1c40f;">起點: ${start}</div>`;
+                let changesFormat = '';
+                let allPoints = [];
+                let organsVisited = 0;
+                let prevVessel = "";
+                
+                if (organChanges[start]) {
+                    changesFormat += `<div class="change-card" style="border-left-color: #f1c40f;"><strong>🩸 離開 [${start}] 時的血液：</strong>${organChanges[start]}</div>`;
+                    organsVisited++;
+                }
+
+                for (let i = 1; i < fullPath.length; i++) {
+                    let step = fullPath[i];
+                    let currentVessel = step.edge.vessel;
+                    if (currentVessel && currentVessel !== prevVessel) {
+                        if (currentVessel.includes("Aorta") || currentVessel === "大動脈 (Aorta)") {
+                            htmlFormat += `<div class="path-step" style="border-left-color: #e74c3c; background-color: #fdf5f6; color: #c0392b;">${currentVessel}</div>`;
+                        } else if (currentVessel.includes("Vena Cava") || currentVessel.includes("腔靜脈")) {
+                            htmlFormat += `<div class="path-step" style="border-left-color: #3498db; background-color: #f4f9fd; color: #2980b9;">${currentVessel}</div>`;
+                        } else {
+                            htmlFormat += `<div class="vessel-text">⬇ 經由：${currentVessel}</div>`;
+                        }
+                        prevVessel = currentVessel;
+                    }
+                    if (nodes[step.node].type !== 'hub') {
+                        let borderColor = step.edge.type === 'oxygenated' ? '#ff7675' : 
+                                          (step.edge.type === 'portal' ? '#a29bfe' : '#74b9ff');
+                        htmlFormat += `<div class="path-step" style="border-left-color: ${borderColor};">${step.node}</div>`;
+                        if (organChanges[step.node]) {
+                            changesFormat += `<div class="change-card" style="border-left-color: ${borderColor};"><strong>🩸 經過 [${step.node}] 後：</strong>${organChanges[step.node]}</div>`;
+                            organsVisited++;
+                        }
+                    }
+                    step.edge.path.forEach(point => {
+                        if (allPoints.length === 0) allPoints.push(point);
+                        else {
+                            let lastP = allPoints[allPoints.length - 1];
+                            if (lastP[0] !== point[0] || lastP[1] !== point[1]) allPoints.push(point);
+                        }
+                    });
+                }
+                
+                routeOutput.innerHTML = htmlFormat;
+                changesOutput.innerHTML = organsVisited === 0 ? `<div style="color: #7f8c8d; text-align: center; margin-top: 20px;">此路徑無顯著化學成分變化。</div>` : changesFormat;
+
+                let totalDist = 0, segmentDists = [];
+                for (let i = 1; i < allPoints.length; i++) {
+                    let d = calcDistance(allPoints[i-1], allPoints[i]);
+                    segmentDists.push(d); totalDist += d;
+                }
+
+                let animationWaypoints = [{ transform: `translate(${allPoints[0][0]}px, ${allPoints[0][1]}px)`, offset: 0 }];
+                let currentDist = 0;
+                for (let i = 1; i < allPoints.length; i++) {
+                    currentDist += segmentDists[i-1];
+                    animationWaypoints.push({ 
+                        transform: `translate(${allPoints[i][0]}px, ${allPoints[i][1]}px)`, 
+                        offset: totalDist === 0 ? 1 : currentDist / totalDist 
+                    });
+                }
+
+                marker.style.display = 'block';
+                currentAnimation = marker.animate(animationWaypoints, { duration: (totalDist / 100) * 450, fill: 'forwards', easing: 'linear' });
+                animBtn.style.display = 'block'; 
+
+                currentAnimation.onfinish = function() {
+                    marker.style.display = 'none'; animBtn.style.display = 'none';
+                };
+            } else {
+                routeOutput.innerHTML = `<p style="color: red; text-align: center;">無法找到路線！</p>`;
+            }
+        }
+
+        function toggleAnimation() {
+            if (!currentAnimation) return;
+            const animBtn = document.getElementById('animation-btn');
+            if (isPaused) { currentAnimation.play(); isPaused = false; animBtn.innerText = "暫停"; } 
+            else { currentAnimation.pause(); isPaused = true; animBtn.innerText = "繼續"; }
         }
     </script>
 </body>
